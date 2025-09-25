@@ -50,3 +50,35 @@ spatialNirData$annualMeanTemp <- terra::extract(nirClimateData[["bio1"]],
 
 spatialNirData$maxTempWarmestMonth <- terra::extract(nirClimateData[["bio5"]],
                                                 spatialNirData)$bio5 
+
+
+#what data should look at (spatialNIR) --> tell it diff ways to visualize that data (scatter, line, etc.) done 
+#by adding geoms (variables and plot them)
+
+ggplot(data = spatialNirData,
+       mapping = aes(x = annualMeanTemp, 
+                     y = `Average IR`)) + 
+  geom_point() + 
+  geom_smooth()
+
+ggplot(data = spatialNirData, 
+       mapping = aes(x = annualMeanTemp, 
+                     y = `Average Visible`)) + 
+  geom_point() +
+  geom_smooth()
+
+ggplot(data = spatialNirData, 
+       mapping = aes(x = maxTempWarmestMonth, 
+                     y = `Average Visible`)) + 
+  geom_point() +
+  geom_smooth()
+
+ggplot(data = spatialNirData, 
+       mapping = aes(x = maxTempWarmestMonth, 
+                     y = `Average IR`)) + 
+  geom_point() +
+  geom_smooth()
+
+
+
+
