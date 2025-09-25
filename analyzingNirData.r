@@ -33,4 +33,20 @@ dir.create("./data/worldclim",
 
 nirClimateData <- worldclim_global(var = "bio",
                                    res = 10,
-                                   path = "./data/worldclim")
+                                   path = "./data/worldclim") 
+
+#Transformed my spatial data coordinates to what the worldclim format is 
+
+spatialNirData <- st_transform(spatialNirData,
+                               src = st_crs(spatialNirData),
+                               crs = crs(nirClimateData))
+
+
+#code to add a column to spatial data for climate variables that we're gonna use 
+names(nirClimateData) <- paste0("bio", 1:19)
+spatialNirData$annualMeanTemp <- terra::extract(nirClimateData[["bio1"]],
+                                                spatialNirData)$bio1 
+
+
+spatialNirData$maxTempWarmestMonth <- terra::extract(nirClimateData[["bio5"]],
+                                                spatialNirData)$bio5 
