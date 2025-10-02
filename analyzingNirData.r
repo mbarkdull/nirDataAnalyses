@@ -44,22 +44,23 @@ spatialNirData <- st_transform(spatialNirData,
 
 #code to add a column to spatial data for climate variables that we're gonna use 
 names(nirClimateData) <- paste0("bio", 1:19)
-spatialNirData$annualMeanTemp <- terra::extract(nirClimateData[["bio1"]],
-                                                spatialNirData)$bio1 
+spatialNirData$meanTempDriestQuarter <- terra::extract(nirClimateData[["bio9"]],
+                                                spatialNirData)$bio9
 
 
-spatialNirData$maxTempWarmestMonth <- terra::extract(nirClimateData[["bio5"]],
-                                                spatialNirData)$bio5 
+spatialNirData$isothermality <- terra::extract(nirClimateData[["bio3"]],
+                                                spatialNirData)$bio3
 
 
 #what data should look at (spatialNIR) --> tell it diff ways to visualize that data (scatter, line, etc.) done 
 #by adding geoms (variables and plot them)
 
 ggplot(data = spatialNirData,
-       mapping = aes(x = annualMeanTemp, 
+       mapping = aes(x = meanTempDriestQuarter, 
                      y = `Average IR`)) + 
   geom_point() + 
   geom_smooth()
+
 
 ggplot(data = spatialNirData, 
        mapping = aes(x = annualMeanTemp, 
