@@ -123,8 +123,8 @@ ggplot(data = specimenLocations,
                      y = irByVisResiduals)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  labs(x = "Annual mean temperature",
-       y = "Average near-infrared reflectance") +
+  labs(x = "Visible light reflectance",
+       y = "Residuals") +
   theme_bw()
 
 # Plot residuals vs. mean temp of hottest month:
