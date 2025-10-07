@@ -7,6 +7,8 @@ library(sf)
 library(spData)
 library(terra)
 library(geodata)
+library(modelr)
+
 
 rawNir <- read_sheet("https://docs.google.com/spreadsheets/d/1dHIhVuh-Sy2clvqRpMiu5mDXpaXXp3W5HgLbzs2rYNo/edit?usp=sharing") %>%
   filter(Latitude != "NULL", 
@@ -42,7 +44,9 @@ spatialNirData <- st_transform(spatialNirData,
                                crs = crs(nirClimateData))
 
 
-#code to add a column to spatial data for climate variables that we're gonna use 
+#code to add a column to spatial data 
+#for climate variables that we're gonna use 
+
 names(nirClimateData) <- paste0("bio", 1:19)
 spatialNirData$meanTempDriestQuarter <- terra::extract(nirClimateData[["bio9"]],
                                                 spatialNirData)$bio9
@@ -80,6 +84,40 @@ ggplot(data = spatialNirData,
   geom_point() +
   geom_smooth()
 
+#linear regression model and :
 
+ggplot(data = spatialNirData, 
+       mapping = aes(x = `Average Visible`,
+                     y = `Average IR`)) + 
+  geom_point() + 
+  geom_smooth() 
+
+cor(spatialNirData$`Average Visible`,
+    spatialNirData$`Average IR`, 
+    use = "complete.obs")
+
+
+#linear regression 
+visAndIRModel <- lm(`Average IR` ~ `Average Visible`, data = spatialNirData,
+                    na.action = na.exclude) 
+#got na.action = na.exclude from google because it was saying 
+#that the resodials has 213 rows and the data has 392, when i was trying to run 
+#line 112. Now it's running ok? 
+
+summary(visAndIRModel)
+
+#Residuals 
+
+visAndIRResiduals<- residuals(visAndIRModel)
+spatialNirData$visAndIRRresiduals <- visAndIRResiduals
+
+
+
+#plotting vis with residuals (line isn't positive anymore)
+ggplot(data = spatialNirData, 
+       mapping = aes(x = `Average Visible`, 
+                     y = visAndIRRresiduals)) + 
+  geom_point() + 
+  geom_smooth()
 
 
