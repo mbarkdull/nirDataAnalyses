@@ -7,7 +7,6 @@ library(sf)
 library(spData)
 library(terra)
 library(geodata)
-library(modelr)
 
 
 rawNir <- read_sheet("https://docs.google.com/spreadsheets/d/1dHIhVuh-Sy2clvqRpMiu5mDXpaXXp3W5HgLbzs2rYNo/edit?usp=sharing") %>%
@@ -84,7 +83,7 @@ ggplot(data = spatialNirData,
   geom_point() +
   geom_smooth()
 
-#linear regression model and :
+#linear regression model:
 
 ggplot(data = spatialNirData, 
        mapping = aes(x = `Average Visible`,
@@ -92,23 +91,24 @@ ggplot(data = spatialNirData,
   geom_point() + 
   geom_smooth() 
 
+
 cor(spatialNirData$`Average Visible`,
     spatialNirData$`Average IR`, 
     use = "complete.obs")
 
 
 #linear regression 
-visAndIRModel <- lm(`Average IR` ~ `Average Visible`, data = spatialNirData,
+visibleAndIRModel <- lm(`Average IR` ~ `Average Visible`, data = spatialNirData,
                     na.action = na.exclude) 
 #got na.action = na.exclude from google because it was saying 
 #that the resodials has 213 rows and the data has 392, when i was trying to run 
 #line 112. Now it's running ok? 
 
-summary(visAndIRModel)
+summary(visibleAndIRModel)
 
 #Residuals 
 
-visAndIRResiduals<- residuals(visAndIRModel)
+visAndIRResiduals<- residuals(visibleAndIRModel)
 spatialNirData$visAndIRRresiduals <- visAndIRResiduals
 
 
