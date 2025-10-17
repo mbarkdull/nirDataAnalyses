@@ -121,3 +121,24 @@ ggplot(data = spatialNirData,
   geom_smooth()
 
 
+#PCA
+#set working directory to the 
+#worldclim files first and create raster lines + stack
+#used cogwheel icon to print correct setwd path
+
+setwd("~/Documents/nirDataAnalyses/data/worldclim/climate/wc2.1_10m") 
+bioFiles <- list.files(pattern = "tif$", full.names = TRUE)
+bioClimStack <- terra::rast(bioFiles)
+
+randomPoints <- terra::spatSample(bioClimStack[[1]],
+                                   size = 10000, method = "random", 
+                                   na.rm = TRUE, as.points = TRUE)
+bioClimData <- terra::extract(bioClimStack, randomPoints, bind = TRUE) %>%
+  as.data.frame() %>%
+  drop_na()
+
+str(bioClimData)
+
+pcaResult <- prcomp(bioClimData, center = TRUE, scale = TRUE)
+summary(pcaResult)
+
