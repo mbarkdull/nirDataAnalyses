@@ -13,6 +13,8 @@ rawNir <- read_sheet("https://docs.google.com/spreadsheets/d/1dHIhVuh-Sy2clvqRpM
   filter(Latitude != "NULL", 
          Longitude != "NULL")
 
+rawNir$irPlusVis <- rawNir$`Average IR` + rawNir$`Average Visible`
+
 ggplot(data = rawNir, 
        mapping = aes(x = Latitude, 
                      y = `Average IR`)) + 
@@ -43,6 +45,20 @@ spatialNirData <- st_transform(spatialNirData,
                                crs = crs(nirClimateData))
 
 
+#Plotting Vis and IR:
+
+ggplot(data = spatialNirData, 
+       mapping = aes(x = `Average Visible`,
+                     y = `Average IR`)) + 
+  geom_point() + 
+  geom_smooth() 
+
+
+cor(spatialNirData$`Average Visible`,
+    spatialNirData$`Average IR`, 
+    use = "complete.obs")
+
+
 #code to add a column to spatial data 
 #for climate variables that we're gonna use 
 
@@ -53,6 +69,18 @@ spatialNirData$meanTempDriestQuarter <- terra::extract(nirClimateData[["bio9"]],
 
 spatialNirData$isothermality <- terra::extract(nirClimateData[["bio3"]],
                                                 spatialNirData)$bio3
+
+spatialNirData$tempSeasonality<- terra::extract(nirClimateData[["bio4"]],
+                                               spatialNirData)$bio4
+
+spatialNirData$annualMeanTemp <- terra::extract(nirClimateData[["bio1"]],
+                                               spatialNirData)$bio1
+
+spatialNirData$maxTempWarmestMonth <- terra::extract(nirClimateData[["bio5"]],
+                                                spatialNirData)$bio5
+
+spatialNirData$minTempColdestMonth <- terra::extract(nirClimateData[["bio6"]],
+                                               spatialNirData)$bio6
 
 
 #what data should look at (spatialNIR) --> tell it diff ways to visualize that data (scatter, line, etc.) done 
@@ -73,28 +101,28 @@ ggplot(data = spatialNirData,
 
 ggplot(data = spatialNirData, 
        mapping = aes(x = maxTempWarmestMonth, 
-                     y = `Average Visible`)) + 
-  geom_point() +
-  geom_smooth()
-
-ggplot(data = spatialNirData, 
-       mapping = aes(x = maxTempWarmestMonth, 
                      y = `Average IR`)) + 
   geom_point() +
   geom_smooth()
 
-#linear regression model:
+ggplot(data = spatialNirData, 
+       mapping = aes(x = tempSeasonality, 
+                     y = `Average IR`)) + 
+  geom_point() +
+  geom_smooth()
 
 ggplot(data = spatialNirData, 
-       mapping = aes(x = `Average Visible`,
+       mapping = aes(x = minTempColdestMonth, 
                      y = `Average IR`)) + 
-  geom_point() + 
-  geom_smooth() 
+  geom_point() +
+  geom_smooth()
 
+#linear models
 
-cor(spatialNirData$`Average Visible`,
-    spatialNirData$`Average IR`, 
-    use = "complete.obs")
+M1 <- lm(`Average IR` ~ minTempColdestMonth + maxTempWarmestMonth +
+           tempSeasonality, data = spatialNirData)
+summary(M1)
+
 
 
 #linear regression 
@@ -112,7 +140,6 @@ visAndIRResiduals<- residuals(visibleAndIRModel)
 spatialNirData$visAndIRRresiduals <- visAndIRResiduals
 
 
-
 #plotting vis with residuals (line isn't positive anymore)
 ggplot(data = spatialNirData, 
        mapping = aes(x = `Average Visible`, 
@@ -121,30 +148,24 @@ ggplot(data = spatialNirData,
   geom_smooth()
 
 
-#PCA
-#set working directory to the 
-#worldclim files first and create raster lines + stack
-#used cogwheel icon to print correct setwd path
+#Set up glm model 
 
-bioFiles <- list.files(path = "./data/worldclim/climate/wc2.1_10m",
-                       pattern = "tif$", full.names = TRUE)
+data <- glm(data = spatialNirData, 
+            averageIR ~ annualMeanTemp + tempSeasonality,
+            family = poisson)
+summary(data)
 
-#stack is used to put all the bio data together 
-bioClimStack <- terra::rast(bioFiles)
+# Back-transform the intercept
+exp(coef(data)[1])
 
-#
-randomPoints <- terra::spatSample(bioClimStack[[1]],
-                                   size = 10000, method = "random", 
-                                   na.rm = TRUE, as.points = TRUE)
-bioClimData <- terra::extract(bioClimStack, randomPoints, bind = TRUE) %>%
-  as.data.frame() %>%
-  drop_na()
+# Back-transform the slope. Change the 2 or 3 for variables.
+exp(coef(data)[2])
 
-str(bioClimData)
-
-pcaResult <- prcomp(bioClimData, center = TRUE, scale = TRUE)
-summary(pcaResult)
-
-
-#solar radiation in the climate data 
-#
+#geom_line
+#simple scatter plot is a no because we have more than 2 dimensons 
+ggplot(data = spatialNirData,
+       mapping = (aes(x = annualMeanTemp,
+                   y = `Average IR`))) + 
+  geom_point() + 
+  geom_abline(slope = exp(coef(data)[2]),
+              intercept = exp(coef(data)[1]))
