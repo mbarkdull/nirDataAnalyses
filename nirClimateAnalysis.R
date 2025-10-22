@@ -208,7 +208,13 @@ loadingsMatrixDataframe <- setNames(reshape2::melt(loadingsMatrix),
                                     c('variable', 
                                       'pc', 
                                       'correlation')) %>%
-  filter(pc %in% c("PC1", "PC2", "PC3"))
+  filter(pc %in% c("PC1", "PC2", "PC3")) %>%
+  arrange(pc,
+          correlation)
+# Get ordered climate variables based on PC1 values:
+orderedVariables <- filter(loadingsMatrixDataframe, pc == "PC1")$variable
+loadingsMatrixDataframe$variable <- factor(loadingsMatrixDataframe$variable,
+                                           levels = orderedVariables)
 
 # Plot
 ggplot(loadingsMatrixDataframe) +
@@ -236,13 +242,21 @@ ggplot(data = PCAvalues,
              col = "black", 
              pch = 21, 
              size = 2, 
-             alpha = 0.4) +
+             alpha = 0.2) +
   theme_bw() +
   annotate("text",
            size = 3,
            x = (PCAloadings$PC1 * 11.5),
            y = (PCAloadings$PC2 * 11.5),
            label = (PCAloadings$Variables)) +
+  geom_segment(data = PCAloadings[, ],
+               aes(x = 0, 
+                   y = 0,
+                   xend = (PC1 * 11), 
+                   yend = (PC2 * 11)),
+               arrow = arrow(length = unit(1 / 2, 
+                                           "picas")),
+               color = "#ffb000") +
   geom_segment(data = PCAloadings[c(1, 2, 3), ],
                mapping = aes(x = 0, 
                              y = 0,
@@ -251,14 +265,6 @@ ggplot(data = PCAvalues,
     arrow = arrow(length = unit(1 / 2, 
                                 "picas")),
     color = "red" ) +
-  geom_segment(data = PCAloadings[c(4, 5, 6, 7), ],
-               aes(x = 0, 
-                   y = 0,
-                   xend = (PC1 * 11), 
-                   yend = (PC2 * 11)),
-    arrow = arrow(length = unit(1 / 2, 
-                                "picas")),
-    color = "#ffb000") +
   geom_hline(yintercept = 0, 
              linetype = "dashed", 
              colour = "gray") +
@@ -283,8 +289,15 @@ cor.test(pcValues$PC3,
          pcValues$meanIR)
 
 
-
+#### Assess relationship between IR and climate ####
 # Run some linear models to see how IR reflectance and climate variables are related:
+    # Things to think about in model output, taken from https://feliperego.github.io/blog/2015/10/23/Interpreting-Model-Output-In-R:
+        # Are residuals symmetric about zero, indicating that the model fits well?
+        # The (Intercept) coefficient tells us the model's expected value of the response variable when we consider the average for the predictor variables across our samples. 
+        # The (Intercept) standard error tells us the difference between the model prediction and the real mean value; you want this to be low. 
+        # The (Intercept) t value tells us how many standard deviations our coefficient estimate is far away from 0. We want it to be far away from zero as this would indicate we could reject the null hypothesis.
+        # The (Intercept) Pr(>t)  tells us the probability of observing any value equal or larger than the t value. A small p-value indicates that it is unlikely we will observe a relationship between the predictor and response variables due to chance.
+        # The remaining coefficients tell us the effect of our predictor variables, with a one-unit increase in the predictor variable leading to that much of a change in the response variable. 
 residualsByWarmth <- lm(data = specimenLocations, 
                         irByVisResiduals ~ annualMeanTemperature + maxTempWarmestMonth)
 summary(residualsByWarmth)
@@ -292,6 +305,10 @@ summary(residualsByWarmth)
 irByWarmth <- lm(data = specimenLocations, 
                  `Average IR` ~ annualMeanTemperature + maxTempWarmestMonth)
 summary(irByWarmth)
+
+irByCold <- lm(data = specimenLocations, 
+               `Average IR` ~ minTempColdest + meanTempColdestQuarter)
+summary(irByCold)
 
 # Look at infrared reflectance and the two PCs that capture >80% of variation in climate:
 irByPCs <- lm(data = pcValues, 
