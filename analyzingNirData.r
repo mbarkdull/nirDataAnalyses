@@ -126,10 +126,13 @@ ggplot(data = spatialNirData,
 #worldclim files first and create raster lines + stack
 #used cogwheel icon to print correct setwd path
 
-setwd("~/Documents/nirDataAnalyses/data/worldclim/climate/wc2.1_10m") 
-bioFiles <- list.files(pattern = "tif$", full.names = TRUE)
+bioFiles <- list.files(path = "./data/worldclim/climate/wc2.1_10m",
+                       pattern = "tif$", full.names = TRUE)
+
+#stack is used to put all the bio data together 
 bioClimStack <- terra::rast(bioFiles)
 
+#
 randomPoints <- terra::spatSample(bioClimStack[[1]],
                                    size = 10000, method = "random", 
                                    na.rm = TRUE, as.points = TRUE)
@@ -142,3 +145,6 @@ str(bioClimData)
 pcaResult <- prcomp(bioClimData, center = TRUE, scale = TRUE)
 summary(pcaResult)
 
+
+#solar radiation in the climate data 
+#
