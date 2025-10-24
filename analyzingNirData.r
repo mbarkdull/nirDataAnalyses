@@ -123,7 +123,10 @@ M1 <- lm(`Average IR` ~ minTempColdestMonth + maxTempWarmestMonth +
            tempSeasonality, data = spatialNirData)
 summary(M1)
 
-
+M2 <- glm(`Average IR` ~ minTempColdestMonth + maxTempWarmestMonth +
+           tempSeasonality, data = spatialNirData,
+          family = poisson)
+summary(M2)
 
 #linear regression 
 visibleAndIRModel <- lm(`Average IR` ~ `Average Visible`, data = spatialNirData,
