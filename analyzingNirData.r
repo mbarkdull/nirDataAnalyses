@@ -82,6 +82,59 @@ spatialNirData$maxTempWarmestMonth <- terra::extract(nirClimateData[["bio5"]],
 spatialNirData$minTempColdestMonth <- terra::extract(nirClimateData[["bio6"]],
                                                spatialNirData)$bio6
 
+#adding in solar data
+dir.create("./data/worldclimSolar",
+           recursive = TRUE)
+
+nirSolarData <- worldclim_global(var = "srad",
+                                 res = 10,
+                                 path = "./data/worldclimSolar") 
+spatialNirData <- st_transform(spatialNirData,
+                               src = st_crs(spatialNirData),
+                               crs = crs(nirSolarData))
+
+spatialNirData$solarRadiationJan <- terra::extract(nirSolarData[["wc2.1_10m_srad_01"]],
+                                                   spatialNirData)$wc2.1_10m_srad_01
+
+spatialNirData$solarRadiationFeb <- terra::extract(nirSolarData[["wc2.1_10m_srad_02"]],
+                                                   spatialNirData)$wc2.1_10m_srad_02
+
+spatialNirData$solarRadiationMar <- terra::extract(nirSolarData[["wc2.1_10m_srad_03"]],
+                                                   spatialNirData)$wc2.1_10m_srad_03
+
+spatialNirData$solarRadiationApr <- terra::extract(nirSolarData[["wc2.1_10m_srad_04"]],
+                                                   spatialNirData)$wc2.1_10m_srad_04
+
+spatialNirData$solarRadiationMay <- terra::extract(nirSolarData[["wc2.1_10m_srad_05"]],
+                                                   spatialNirData)$wc2.1_10m_srad_05
+
+spatialNirData$solarRadiationJun <- terra::extract(nirSolarData[["wc2.1_10m_srad_06"]],
+                                                   spatialNirData)$wc2.1_10m_srad_06
+
+spatialNirData$solarRadiationJul <- terra::extract(nirSolarData[["wc2.1_10m_srad_07"]],
+                                                   spatialNirData)$wc2.1_10m_srad_07
+
+spatialNirData$solarRadiationAug <- terra::extract(nirSolarData[["wc2.1_10m_srad_08"]],
+                                                   spatialNirData)$wc2.1_10m_srad_08
+
+spatialNirData$solarRadiationSept <- terra::extract(nirSolarData[["wc2.1_10m_srad_09"]],
+                                                    spatialNirData)$wc2.1_10m_srad_09
+
+spatialNirData$solarRadiationOct <- terra::extract(nirSolarData[["wc2.1_10m_srad_10"]],
+                                                   spatialNirData)$wc2.1_10m_srad_10
+
+spatialNirData$solarRadiationNov <- terra::extract(nirSolarData[["wc2.1_10m_srad_11"]],
+                                                   spatialNirData)$wc2.1_10m_srad_11
+
+spatialNirData$solarRadiationDec <- terra::extract(nirSolarData[["wc2.1_10m_srad_12"]],
+                                                   spatialNirData)$wc2.1_10m_srad_12
+
+
+spatialNirData <- spatialNirData %>%
+  rowwise() %>%
+  mutate(solarMean = mean(c_across(c(starts_with('solarRadiation'))), 
+                          na.rm=TRUE))
+
 
 #what data should look at (spatialNIR) --> tell it diff ways to visualize that data (scatter, line, etc.) done 
 #by adding geoms (variables and plot them)
@@ -117,6 +170,7 @@ ggplot(data = spatialNirData,
   geom_point() +
   geom_smooth()
 
+
 #linear models
 
 M1 <- lm(`Average IR` ~ minTempColdestMonth + maxTempWarmestMonth +
@@ -127,6 +181,7 @@ M2 <- glm(`Average IR` ~ minTempColdestMonth + maxTempWarmestMonth +
            tempSeasonality, data = spatialNirData,
           family = poisson)
 summary(M2)
+
 
 #linear regression 
 visibleAndIRModel <- lm(`Average IR` ~ `Average Visible`, data = spatialNirData,
