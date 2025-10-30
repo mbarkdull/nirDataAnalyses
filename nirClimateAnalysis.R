@@ -223,7 +223,8 @@ ggplot(loadingsMatrixDataframe) +
                           fill = correlation),
             stat = "identity") +
   theme(axis.text.x = element_text(angle = 90)) + 
-  scale_fill_distiller(type = "div")
+  scale_fill_distiller(type = "div") +
+  theme_minimal()
 
 # Plot the variables loaded onto the data:
 # Extract PC axes for plotting
