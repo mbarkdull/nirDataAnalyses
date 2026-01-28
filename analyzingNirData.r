@@ -227,3 +227,5 @@ ggplot(data = spatialNirData,
   geom_point() + 
   geom_abline(slope = exp(coef(data)[2]),
               intercept = exp(coef(data)[1]))
+
+#Create a function is next to do for code
