@@ -53,7 +53,7 @@ possiblyFindDolichoderines <- purrr::possibly(findDolichoderines,
 dolichoderineTipsInTree <- purrr::map(dolichoderineGenera,
                                       possiblyFindDolichoderines)
 
-# Convert the output to a list:
+# Convert the output to a list: 
 dolichoderineTipsInTree <- unlist(dolichoderineTipsInTree)
 
 # Trim the tree to include only Dolichoderine tips:
