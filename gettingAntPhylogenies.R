@@ -2,6 +2,62 @@ library(tidyverse)
 library(ape)
 library(phytools)
 
+#### Get a genus-level tree for all of Formicidae: ####
+# Using the consensus tree from Borowiec et al. 2024
+borowiecTree <- read.tree(file = "./06_borowiecConsensusTrees/Consensus_tree.newick")
+
+# Fix the tip labels:
+tipLabels <- borowiecTree$tip.label %>%
+  stringr::str_split_i(pattern = "_",
+                       i = 1)
+
+borowiecTree$tip.label <- tipLabels
+
+# List the genera that we have imaged:
+imagedGenera <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/14TdkBwfKToeK63GIZOCdQDAOzsPtZXl5SGMu8OmLrUc/edit?usp=sharing",
+                                          col_names = TRUE)
+imagedGenera <- unique(imagedGenera$Genus)
+
+# Write a function to find species in those genera in the Borowiec tree:
+findGenera <- function(genus) {
+  matchingTips <- grep(genus, 
+                       borowiecTree$tip.label, 
+                       value = TRUE)
+  
+  if (length(matchingTips) == 0) {
+    print(paste("Could not find",
+                genus))
+  }
+  
+  return(matchingTips)
+}
+
+# Make the function safe with purrr::possibly:
+possiblyFindGenera <- purrr::possibly(findGenera,
+                                      otherwise = "No match.")
+
+# Apply it over all genera with map:
+matchingTipsInTree <- purrr::map(imagedGenera,
+                                 possiblyFindGenera)
+
+# Convert the output to a list: 
+matchingTipsInTree <- unlist(matchingTipsInTree) 
+matchingTipsInTree <- matchingTipsInTree[!is.na(matchingTipsInTree)]
+  
+
+# Trim the tree to include only tips for genera we have imaged:
+trimmedTree <- keep.tip(phy = borowiecTree,
+                        tip = matchingTipsInTree)
+
+# Plot the tree:
+ggtree::ggtree(trimmedTree) +
+  ggtree::geom_tiplab(size = 2) +
+  xlim(0, 120)
+
+# Export the tree in Newick format:
+ape::write.tree(phy = trimmedTree,
+                file = "trimmedGenusTreeBasedOnBorowiecetal2024.txt")
+
 #### Get a dolichoderine tree ####
 # Using the tree from Nelsen et al. 2018 (https://doi.org/10.1073/pnas.1719794115)
 nelsenTree <- read.tree(file = "Nelsen2018_Dryad_Supplementary_File_7_ML_TREE_treepl_185.tre")
