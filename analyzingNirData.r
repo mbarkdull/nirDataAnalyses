@@ -206,7 +206,7 @@ ggplot(data = spatialNirData,
   geom_smooth()
 
 
-#Set up glm model 
+#Set up glm model .. don't need?
 
 data <- glm(data = spatialNirData, 
             averageIR ~ annualMeanTemp + tempSeasonality,
