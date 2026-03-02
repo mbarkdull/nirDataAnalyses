@@ -177,10 +177,6 @@ M1 <- lm(`Average IR` ~ minTempColdestMonth + maxTempWarmestMonth +
            tempSeasonality, data = spatialNirData)
 summary(M1)
 
-M2 <- glm(`Average IR` ~ minTempColdestMonth + maxTempWarmestMonth +
-           tempSeasonality, data = spatialNirData,
-          family = poisson)
-summary(M2)
 
 
 #linear regression 
@@ -206,26 +202,5 @@ ggplot(data = spatialNirData,
   geom_smooth()
 
 
-#Set up glm model .. don't need?
-
-data <- glm(data = spatialNirData, 
-            averageIR ~ annualMeanTemp + tempSeasonality,
-            family = poisson)
-summary(data)
-
-# Back-transform the intercept
-exp(coef(data)[1])
-
-# Back-transform the slope. Change the 2 or 3 for variables.
-exp(coef(data)[2])
-
-#geom_line
-#simple scatter plot is a no because we have more than 2 dimensons 
-ggplot(data = spatialNirData,
-       mapping = (aes(x = annualMeanTemp,
-                   y = `Average IR`))) + 
-  geom_point() + 
-  geom_abline(slope = exp(coef(data)[2]),
-              intercept = exp(coef(data)[1]))
 
 #Create a function is next to do for code
