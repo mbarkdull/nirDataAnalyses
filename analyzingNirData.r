@@ -7,6 +7,9 @@ library(sf)
 library(spData)
 library(terra)
 library(geodata)
+library(ggplot2)
+library(AICcmodavg)
+
 
 #Create a function is next to do for code
 analyzingNIRData <- function(inputGenus) {
@@ -21,11 +24,11 @@ analyzingNIRData <- function(inputGenus) {
   
   spatialNirData <- st_as_sf(rawNir,
                              coords = c("Longitude", 
-                                        "Latitude"))
+                                        "Latitude"), remove = FALSE)
   spatialNirData <- st_set_crs(spatialNirData, 
                                "+proj=longlat +datum=WGS84")
   
-  #Downloading Climate Data
+ #Downloading Climate Data
   
   dir.create("./data/worldclim",
              recursive = TRUE)
@@ -81,6 +84,17 @@ analyzingNIRData <- function(inputGenus) {
   
   spatialNirData$minTempColdestMonth <- terra::extract(nirClimateData[["bio6"]],
                                                        spatialNirData)$bio6
+  
+  spatialNirData$mTWQ <- terra::extract(nirClimateData[["bio10"]],
+                                                       spatialNirData)$bio10
+  
+  spatialNirData$mTCQ <- terra::extract(nirClimateData[["bio11"]],
+                                                          spatialNirData)$bio11
+  
+  spatialNirData$percipColdestQ <- terra::extract(nirClimateData[["bio19"]],
+                                        spatialNirData)$bio19
+  
+  
   
   #adding in solar data
   dir.create("./data/worldclimSolar",
@@ -173,13 +187,53 @@ analyzingNIRData <- function(inputGenus) {
   
   #linear models
   
-  M1 <- lm(`Average IR` ~ minTempColdestMonth + maxTempWarmestMonth +
-             tempSeasonality, data = spatialNirData)
+  M1 <- lm(`Average IR` ~ mTCQ*tempSeasonality +
+             annualMeanTemp, data = spatialNirData)
   summary(M1)
   saveRDS(object = M1,
           file = paste(inputGenus,
                        "_m1Model.RDS",
                        sep = ""))
+  M2 <- lm(`Average IR` ~ tempSeasonality*solarMean +
+             annualMeanTemp, data = spatialNirData)
+  summary(M2)
+  saveRDS(object = M2,
+          file = paste(inputGenus,
+                       "_m2Model.RDS",
+                       sep = ""))
+  M3 <- lm(`Average IR` ~ mTCQ* solarMean +
+             annualMeanTemp, data = spatialNirData)
+  summary(M3)
+  saveRDS(object = M3,
+          file = paste(inputGenus,
+                       "_m3Model.RDS",
+                       sep = ""))
+  M4 <- lm(`Average IR` ~ mTCQ +
+             annualMeanTemp, data = spatialNirData)
+  summary(M4)
+  saveRDS(object = M4,
+          file = paste(inputGenus,
+                       "_m4Model.RDS",
+                       sep = ""))
+  
+  M5 <- lm(`Average IR` ~ percipColdestQ * tempSeasonality + annualMeanTemp,
+           data = spatialNirData)
+  summary(M5)
+  saveRDS(object = M5, 
+          file = paste(inputGenus, 
+                       "_m5Model.RDS",
+                       sep = ""))
+  
+  fullModel <- lm(`Average IR` ~ percipColdestQ + tempSeasonality + 
+                    solarMean + mTCQ +
+                  mTWQ + annualMeanTemp, data = spatialNirData)
+  summary(fullModel)
+  saveRDS(object = fullModel, 
+          file = paste(inputGenus,
+                       "_fullModel.RDS",
+                       sep = ""))
+
+  
   
   
   #linear regression 
@@ -207,6 +261,29 @@ analyzingNIRData <- function(inputGenus) {
                        y = visAndIRRresiduals)) + 
     geom_point() + 
     geom_smooth()
+  
+  #plot for sampling locations
+  ggplot() +
+    geom_polygon(data = us_map,
+                 aes(x = long, y = lat, group = group),
+                 fill = "grey95", color = "grey60") +
+    geom_point(data = spatialNirData %>% 
+                 group_by(Latitude, Longitude) %>% 
+                 mutate(n = n()),
+               aes(x = Longitude, y = Latitude, size = n, color = n),
+               alpha = 0.6) +
+    scale_size_continuous(name = "# Specimens") +
+    scale_color_viridis_c() +
+    guides(color = "none") +
+    coord_fixed(1.3, xlim = c(-125, -66), ylim = c(25, 50)) +
+    theme_void() +
+    theme(
+      plot.margin = margin(t = 20, r = 40, b = 20, l = 20),
+      plot.title = element_text(hjust = 0.5)
+    ) +
+    labs(title = "Prenolepis imparis Sampling Locations",
+         x = NULL, y = NULL) 
+  
 }
 
 
@@ -215,10 +292,28 @@ analyzingNIRData(inputGenus = "Tapinoma")
 
 prenolepisM1Model <- readRDS("Prenolepis_m1Model.RDS")
 summary(prenolepisM1Model)
+prenolepisM2Model <- readRDS("Prenolepis_m2Model.RDS")
+summary(prenolepisM2Model)
+prenolepisM3Model <- readRDS("Prenolepis_m3Model.RDS")
+summary(prenolepisM3Model)
+prenolepisM4Model <- readRDS("Prenolepis_m4Model.RDS")
+summary(prenolepisM4Model)
+prenolepisM5Model <- readRDS("Prenolepis_m5Model.RDS")
+summary(prenolepisM5Model)
+prenolepisFullModel <- readRDS("Prenolepis_fullModel.RDS")
+summary(prenolepisFullModel)
+
 
 prenolepisIRVisPlot <- readRDS(file = "Prenolepis_irVisPlot.RDS")
 plot(prenolepisIRVisPlot)
 
 
+prenolepisModelList <- list(
+  "Cold" = prenolepisM1Model,
+  "Solar Radiation" = prenolepisM2Model,
+  "Solar x Cold" = prenolepisM3Model,
+  "Warm" = prenolepisM4Model,
+  "Precipitation" = prenolepisM5Model,
+  "Full Model" = prenolepisFullModel)
 
-
+aictab(cand.set = prenolepisModelList)
