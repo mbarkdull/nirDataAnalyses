@@ -44,12 +44,37 @@ analyzingNIRData <- function(inputGenus) {
                                  crs = crs(nirClimateData))
   
   
-  #Plotting Vis and IR:
+  #Plotting Vis and IR (use this one):
+  
+  irVisPlot <- ggplot(data = spatialNirData, 
+                      mapping = aes(x = `Average Visible`,
+                                    y = `Average IR`)) + 
+    geom_point(alpha = 0.6) + 
+    geom_smooth(method = "lm", color = "black", fill = "lightgreen") +
+    annotate("text", x = Inf, y = Inf, 
+             label = paste("r =", round(correlation, 4)),
+             hjust = 1.1, vjust = 1.5, size = 4) +
+    labs(title = "IR vs. Visible Reflectivity",
+         x = "% Visible Reflectivity",
+         y = "% IR Reflectivity") +
+    theme_classic()
+  
+  saveRDS(object = irVisPlot,
+          file = paste(inputGenus,
+                       "_irVisPlot.RDS",
+                       sep = ""))
+  
+  
   correlation <- cor(spatialNirData$`Average Visible`,
                      spatialNirData$`Average IR`, 
                      use = "complete.obs")
-  
-  irVisPlot <- ggplot(data = spatialNirData, 
+  correlation
+  saveRDS(object = correlation,
+          file = paste(inputGenus,
+                       "_correlationVisIR.RDS",
+                       sep = ""))
+  #don't use this one: 
+  irVisPlot2 <- ggplot(data = spatialNirData, 
                       mapping = aes(x = `Average Visible`,
                                     y = `Average IR`)) + 
     geom_point() + 
@@ -57,10 +82,7 @@ analyzingNIRData <- function(inputGenus) {
     labs(title = paste("Correlation of mean IR and\nmean visible reflectance;\ncorrelation = ",
                        correlation,
                        sep = ""))
-  saveRDS(object = irVisPlot,
-          file = paste(inputGenus,
-                       "_irVisPlot.RDS",
-                       sep = ""))
+  
   
   #code to add a column to spatial data 
   #for climate variables that we're gonna use 
@@ -184,58 +206,6 @@ analyzingNIRData <- function(inputGenus) {
     geom_point() +
     geom_smooth()
   
-  
-  #linear models
-  
-  M1 <- lm(`Average IR` ~ mTCQ*tempSeasonality +
-             annualMeanTemp, data = spatialNirData)
-  summary(M1)
-  saveRDS(object = M1,
-          file = paste(inputGenus,
-                       "_m1Model.RDS",
-                       sep = ""))
-  M2 <- lm(`Average IR` ~ tempSeasonality*solarMean +
-             annualMeanTemp, data = spatialNirData)
-  summary(M2)
-  saveRDS(object = M2,
-          file = paste(inputGenus,
-                       "_m2Model.RDS",
-                       sep = ""))
-  M3 <- lm(`Average IR` ~ mTCQ* solarMean +
-             annualMeanTemp, data = spatialNirData)
-  summary(M3)
-  saveRDS(object = M3,
-          file = paste(inputGenus,
-                       "_m3Model.RDS",
-                       sep = ""))
-  M4 <- lm(`Average IR` ~ mTCQ +
-             annualMeanTemp, data = spatialNirData)
-  summary(M4)
-  saveRDS(object = M4,
-          file = paste(inputGenus,
-                       "_m4Model.RDS",
-                       sep = ""))
-  
-  M5 <- lm(`Average IR` ~ percipColdestQ * tempSeasonality + annualMeanTemp,
-           data = spatialNirData)
-  summary(M5)
-  saveRDS(object = M5, 
-          file = paste(inputGenus, 
-                       "_m5Model.RDS",
-                       sep = ""))
-  
-  fullModel <- lm(`Average IR` ~ percipColdestQ + tempSeasonality + 
-                    solarMean + mTCQ +
-                  mTWQ + annualMeanTemp, data = spatialNirData)
-  summary(fullModel)
-  saveRDS(object = fullModel, 
-          file = paste(inputGenus,
-                       "_fullModel.RDS",
-                       sep = ""))
-
-  
-  
-  
   #linear regression 
   visibleAndIRModel <- lm(`Average IR` ~ `Average Visible`, data = spatialNirData,
                           na.action = na.exclude) 
@@ -253,6 +223,54 @@ analyzingNIRData <- function(inputGenus) {
   
   visAndIRResiduals<- residuals(visibleAndIRModel)
   spatialNirData$visAndIRRresiduals <- visAndIRResiduals
+  
+  #linear models
+  
+  M1 <- lm(visAndIRResiduals ~ mTCQ*tempSeasonality +
+             annualMeanTemp, data = spatialNirData)
+  summary(M1)
+  saveRDS(object = M1,
+          file = paste(inputGenus,
+                       "_m1Model.RDS",
+                       sep = ""))
+  M2 <- lm(visAndIRResiduals ~ tempSeasonality*solarMean +
+             annualMeanTemp, data = spatialNirData)
+  summary(M2)
+  saveRDS(object = M2,
+          file = paste(inputGenus,
+                       "_m2Model.RDS",
+                       sep = ""))
+  M3 <- lm(visAndIRResiduals ~ mTCQ* solarMean +
+             annualMeanTemp, data = spatialNirData)
+  summary(M3)
+  saveRDS(object = M3,
+          file = paste(inputGenus,
+                       "_m3Model.RDS",
+                       sep = ""))
+  M4 <- lm(visAndIRResiduals ~ mTCQ +
+             annualMeanTemp, data = spatialNirData)
+  summary(M4)
+  saveRDS(object = M4,
+          file = paste(inputGenus,
+                       "_m4Model.RDS",
+                       sep = ""))
+  
+  M5 <- lm(visAndIRResiduals ~ percipColdestQ * tempSeasonality + annualMeanTemp,
+           data = spatialNirData)
+  summary(M5)
+  saveRDS(object = M5, 
+          file = paste(inputGenus, 
+                       "_m5Model.RDS",
+                       sep = ""))
+  
+  fullModel <- lm(visAndIRResiduals ~ percipColdestQ + tempSeasonality + 
+                    solarMean + mTCQ +
+                  mTWQ + annualMeanTemp, data = spatialNirData)
+  summary(fullModel)
+  saveRDS(object = fullModel, 
+          file = paste(inputGenus,
+                       "_fullModel.RDS",
+                       sep = ""))
   
   
   #plotting vis with residuals (line isn't positive anymore)
@@ -287,8 +305,10 @@ analyzingNIRData <- function(inputGenus) {
 }
 
 
+#Prenolepis
+
 analyzingNIRData(inputGenus = "Prenolepis")
-analyzingNIRData(inputGenus = "Tapinoma")
+
 
 prenolepisM1Model <- readRDS("Prenolepis_m1Model.RDS")
 summary(prenolepisM1Model)
@@ -317,3 +337,34 @@ prenolepisModelList <- list(
   "Full Model" = prenolepisFullModel)
 
 aictab(cand.set = prenolepisModelList)
+
+
+#Tapinoma 
+
+analyzingNIRData(inputGenus = "Tapinoma")
+
+tapinomaIRVisPlot <- readRDS(file = "Tapinoma_irVisPlot.RDS")
+plot(tapinomaIRVisPlot)
+
+tapinomaM1Model <- readRDS("Tapinoma_m1Model.RDS")
+summary(tapinomaM1Model)
+tapinomaM2Model <- readRDS("Tapinoma_m2Model.RDS")
+summary(tapinomaM2Model)
+tapinomaM3Model <- readRDS("Tapinoma_m3Model.RDS")
+summary(tapinomaM3Model)
+tapinomaM4Model <- readRDS("Tapinoma_m4Model.RDS")
+summary(tapinomaM4Model)
+tapinomaM5Model <- readRDS("Tapinoma_m5Model.RDS")
+summary(tapinomaM5Model)
+tapinomaFullModel <- readRDS("Tapinoma_fullModel.RDS")
+summary(tapinomaFullModel)
+
+tapinomaModelList <- list(
+  "Cold" = tapinomaM1Model,
+  "Solar Radiation" = tapinomaM2Model,
+  "Solar x Cold" = tapinomaM3Model,
+  "Warm" = tapinomaM4Model,
+  "Precipitation" = tapinomaM5Model,
+  "Full Model" = tapinomaFullModel)
+
+aictab(cand.set = tapinomaModelList)
