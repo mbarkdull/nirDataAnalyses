@@ -42,7 +42,16 @@ analyzingNIRData <- function(inputGenus) {
   spatialNirData <- st_transform(spatialNirData,
                                  src = st_crs(spatialNirData),
                                  crs = crs(nirClimateData))
+  #correlation 
   
+  correlation <- cor(spatialNirData$`Average Visible`,
+                     spatialNirData$`Average IR`, 
+                     use = "complete.obs")
+  correlation
+  saveRDS(object = correlation,
+          file = paste(inputGenus,
+                       "_correlationVisIR.RDS",
+                       sep = ""))
   
   #Plotting Vis and IR (use this one):
   
@@ -65,14 +74,6 @@ analyzingNIRData <- function(inputGenus) {
                        sep = ""))
   
   
-  correlation <- cor(spatialNirData$`Average Visible`,
-                     spatialNirData$`Average IR`, 
-                     use = "complete.obs")
-  correlation
-  saveRDS(object = correlation,
-          file = paste(inputGenus,
-                       "_correlationVisIR.RDS",
-                       sep = ""))
  
    #don't use this one: 
   irVisPlot2NO <- ggplot(data = spatialNirData, 
@@ -273,6 +274,56 @@ analyzingNIRData <- function(inputGenus) {
                        "_fullModel.RDS",
                        sep = ""))
   
+  #Models for Average VIS 
+  
+  VISM1 <- lm(`Average Visible` ~ mTCQ*tempSeasonality +
+             annualMeanTemp, data = spatialNirData)
+  summary(VISM1)
+  saveRDS(object = VISM1,
+          file = paste(inputGenus,
+                       "_VISm1Model.RDS",
+                       sep = ""))
+  VISM2 <- lm(`Average Visible` ~ tempSeasonality*solarMean +
+             annualMeanTemp, data = spatialNirData)
+  summary(VISM2)
+  saveRDS(object = VISM2,
+          file = paste(inputGenus,
+                       "_VISm2Model.RDS",
+                       sep = ""))
+  VISM3 <- lm(`Average Visible` ~ mTCQ* solarMean +
+             annualMeanTemp, data = spatialNirData)
+  summary(VISM3)
+  saveRDS(object = VISM3,
+          file = paste(inputGenus,
+                       "_VISm3Model.RDS",
+                       sep = ""))
+  VISM4 <- lm(`Average Visible` ~ mTCQ +
+             annualMeanTemp, data = spatialNirData)
+  summary(VISM4)
+  saveRDS(object = VISM4,
+          file = paste(inputGenus,
+                       "_VISm4Model.RDS",
+                       sep = ""))
+  
+  VISM5 <- lm(`Average Visible` ~ percipColdestQ * tempSeasonality + annualMeanTemp,
+           data = spatialNirData)
+  summary(VISM5)
+  saveRDS(object = VISM5, 
+          file = paste(inputGenus, 
+                       "_VISm5Model.RDS",
+                       sep = ""))
+  
+  VISfullModel <- lm(`Average Visible` ~ percipColdestQ + tempSeasonality + 
+                    solarMean + mTCQ +
+                    mTWQ + annualMeanTemp, data = spatialNirData)
+  summary(VISfullModel)
+  saveRDS(object = VISfullModel, 
+          file = paste(inputGenus,
+                       "_VISfullModel.RDS",
+                       sep = ""))
+  
+  
+  
   
   #plotting vis with residuals (line isn't positive anymore)
   ggplot(data = spatialNirData, 
@@ -333,6 +384,45 @@ summary(prenolepisFullModel)
 prenolepisIRVisPlot <- readRDS(file = "Prenolepis_irVisPlot.RDS")
 plot(prenolepisIRVisPlot)
 
+samplingPrenolepis <- readRDS(file = "Prenolepis_samplingLocations.RDS")
+samplingPrenolepis
+
+
+prenolepiscorrelation <- readRDS("Prenolepis_correlationVisIR.RDS")
+prenolepiscorrelation
+
+prenolepisIRVisPlot <- readRDS(file = "Prenolepis_irVisPlot.RDS")
+plot(prenolepisIRVisPlot)
+
+prenolepisRSquared <- readRDS("Prenolepis_visibleAndIRModel.RDS")
+summary(prenolepisRSquared)
+
+#for PRenolepis VIS 
+
+visprenolepisM1Model <- readRDS("Prenolepis_VISm1Model.RDS")
+summary(visprenolepisM1Model)
+visprenolepisM2Model <- readRDS("Prenolepis_VISm2Model.RDS")
+summary(visprenolepisM2Model)
+visprenolepisM3Model <- readRDS("Prenolepis_VISm3Model.RDS")
+summary(visprenolepisM3Model)
+visprenolepisM4Model <- readRDS("Prenolepis_VISm4Model.RDS")
+summary(visprenolepisM4Model)
+visprenolepisM5Model <- readRDS("Prenolepis_VISm5Model.RDS")
+summary(visprenolepisM5Model )
+visprenolepisFullModel <- readRDS("Prenolepis_VISfullModel.RDS")
+summary(visprenolepisFullModel)
+
+VISprenolepisModelList <- list(
+  "Cold" = visprenolepisM1Model,
+  "Solar Radiation" = visprenolepisM2Model,
+  "Solar x Cold" = visprenolepisM3Model,
+  "Warm" = visprenolepisM4Model,
+  "Precipitation" = visprenolepisM5Model,
+  "Full Model" = visprenolepisFullModel)
+
+aictab(cand.set = VISprenolepisModelList)
+
+#for IR
 
 prenolepisModelList <- list(
   "Cold" = prenolepisM1Model,
@@ -344,8 +434,7 @@ prenolepisModelList <- list(
 
 aictab(cand.set = prenolepisModelList)
 
-samplingPrenolepis <- readRDS(file = "Prenolepis_samplingLocations.RDS")
-samplingPrenolepis
+
 
 #Tapinoma 
 
@@ -380,3 +469,13 @@ aictab(cand.set = tapinomaModelList)
 
 samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
 samplingTapinoma
+
+Tapinomacorrelation <- readRDS("Tapinoma_correlationVisIR.RDS")
+Tapinomacorrelation
+
+TapinomaIRVisPlot <- readRDS(file = "Tapinoma_irVisPlot.RDS")
+plot(TapinomaIRVisPlot)
+
+tapinomaRSquared <- readRDS("Tapinoma_visibleAndIRModel.RDS")
+summary(tapinomaRSquared)
+
