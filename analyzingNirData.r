@@ -73,8 +73,9 @@ analyzingNIRData <- function(inputGenus) {
           file = paste(inputGenus,
                        "_correlationVisIR.RDS",
                        sep = ""))
-  #don't use this one: 
-  irVisPlot2 <- ggplot(data = spatialNirData, 
+ 
+   #don't use this one: 
+  irVisPlot2NO <- ggplot(data = spatialNirData, 
                       mapping = aes(x = `Average Visible`,
                                     y = `Average IR`)) + 
     geom_point() + 
@@ -281,7 +282,7 @@ analyzingNIRData <- function(inputGenus) {
     geom_smooth()
   
   #plot for sampling locations
-  ggplot() +
+ samplingLocations <- ggplot() +
     geom_polygon(data = us_map,
                  aes(x = long, y = lat, group = group),
                  fill = "grey95", color = "grey60") +
@@ -301,6 +302,11 @@ analyzingNIRData <- function(inputGenus) {
     ) +
     labs(title = "Prenolepis imparis Sampling Locations",
          x = NULL, y = NULL) 
+ 
+  saveRDS(object = samplingLocations, 
+          file = paste(inputGenus,
+                       "_samplingLocations.RDS",
+                       sep = ""))
   
 }
 
@@ -338,6 +344,8 @@ prenolepisModelList <- list(
 
 aictab(cand.set = prenolepisModelList)
 
+samplingPrenolepis <- readRDS(file = "Prenolepis_samplingLocations.RDS")
+samplingPrenolepis
 
 #Tapinoma 
 
@@ -368,3 +376,7 @@ tapinomaModelList <- list(
   "Full Model" = tapinomaFullModel)
 
 aictab(cand.set = tapinomaModelList)
+
+
+samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
+samplingTapinoma
