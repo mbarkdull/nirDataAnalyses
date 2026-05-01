@@ -9,6 +9,8 @@ library(terra)
 library(geodata)
 library(ggplot2)
 library(AICcmodavg)
+install.packages("ggtext")
+library(ggtext)
 
 
 #Create a function is next to do for code
@@ -249,7 +251,7 @@ analyzingNIRData <- function(inputGenus) {
           file = paste(inputGenus,
                        "_m3Model.RDS",
                        sep = ""))
-  M4 <- lm(visAndIRResiduals ~ mTCQ +
+  M4 <- lm(visAndIRResiduals ~ mTWQ +
              annualMeanTemp, data = spatialNirData)
   summary(M4)
   saveRDS(object = M4,
@@ -297,7 +299,7 @@ analyzingNIRData <- function(inputGenus) {
           file = paste(inputGenus,
                        "_VISm3Model.RDS",
                        sep = ""))
-  VISM4 <- lm(`Average Visible` ~ mTCQ +
+  VISM4 <- lm(`Average Visible` ~ mTWQ +
              annualMeanTemp, data = spatialNirData)
   summary(VISM4)
   saveRDS(object = VISM4,
@@ -334,7 +336,7 @@ analyzingNIRData <- function(inputGenus) {
   
   #plot for sampling locations
  samplingLocations <- ggplot() +
-    geom_polygon(data = us_map,
+    geom_polygon(data = us_map, #change 
                  aes(x = long, y = lat, group = group),
                  fill = "grey95", color = "grey60") +
     geom_point(data = spatialNirData %>% 
@@ -351,7 +353,7 @@ analyzingNIRData <- function(inputGenus) {
       plot.margin = margin(t = 20, r = 40, b = 20, l = 20),
       plot.title = element_text(hjust = 0.5)
     ) +
-    labs(title = "Prenolepis imparis Sampling Locations",
+    labs(title = "Sampling Locations",
          x = NULL, y = NULL) 
  
   saveRDS(object = samplingLocations, 
@@ -382,17 +384,19 @@ summary(prenolepisFullModel)
 
 
 prenolepisIRVisPlot <- readRDS(file = "Prenolepis_irVisPlot.RDS")
-plot(prenolepisIRVisPlot)
+plot(prenolepisIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Prenolepis imparis*") + 
+  theme(plot.title = element_markdown())
 
 samplingPrenolepis <- readRDS(file = "Prenolepis_samplingLocations.RDS")
-samplingPrenolepis
+samplingPrenolepis + ggtitle("*Prenolepis imparis* Sampling Locations") + 
+  theme(plot.title = element_markdown())
 
 
 prenolepiscorrelation <- readRDS("Prenolepis_correlationVisIR.RDS")
 prenolepiscorrelation
 
-prenolepisIRVisPlot <- readRDS(file = "Prenolepis_irVisPlot.RDS")
-plot(prenolepisIRVisPlot)
+
+#correlation summary for VIS and IR
 
 prenolepisRSquared <- readRDS("Prenolepis_visibleAndIRModel.RDS")
 summary(prenolepisRSquared)
@@ -436,12 +440,18 @@ aictab(cand.set = prenolepisModelList)
 
 
 
-#Tapinoma 
+#TAPINOMA
 
 analyzingNIRData(inputGenus = "Tapinoma")
 
 tapinomaIRVisPlot <- readRDS(file = "Tapinoma_irVisPlot.RDS")
-plot(tapinomaIRVisPlot)
+plot(tapinomaIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Tapinoma sessile*") + 
+  theme(plot.title = element_markdown())
+
+tapinomaRSquared <- readRDS("Tapinoma_visibleAndIRModel.RDS")
+summary(tapinomaRSquared)
+
+#IR MODELS 
 
 tapinomaM1Model <- readRDS("Tapinoma_m1Model.RDS")
 summary(tapinomaM1Model)
@@ -466,9 +476,36 @@ tapinomaModelList <- list(
 
 aictab(cand.set = tapinomaModelList)
 
+#VIS MODELS 
+
+vistapM1Model <- readRDS("Tapinoma_VISm1Model.RDS")
+summary(vistapM1Model)
+vistapM2Model <- readRDS("Tapinoma_VISm2Model.RDS")
+summary(vistapM2Model)
+vistapM3Model <- readRDS("Tapinoma_VISm3Model.RDS")
+summary(vistapM3Model)
+vistapM4Model <- readRDS("Tapinoma_VISm4Model.RDS")
+summary(vistapM4Model)
+vistapM5Model <- readRDS("Tapinoma_VISm5Model.RDS")
+summary(vistapM5Model)
+vistapFullModel <- readRDS("Tapinoma_VISfullModel.RDS")
+summary(vistapFullModel)
+
+vistapinomaModelList <- list(
+  "Cold" = vistapM1Model,
+  "Solar Radiation" = vistapM2Model,
+  "Solar x Cold" = vistapM3Model,
+  "Warm" = vistapM4Model,
+  "Precipitation" = vistapM5Model,
+  "Full Model" = vistapFullModel)
+
+
+aictab(cand.set = vistapinomaModelList)
+
 
 samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
-samplingTapinoma
+samplingTapinoma + ggtitle("*Tapinoma sessile* Sampling Locations") + 
+  theme(plot.title = element_markdown())
 
 Tapinomacorrelation <- readRDS("Tapinoma_correlationVisIR.RDS")
 Tapinomacorrelation
@@ -478,4 +515,13 @@ plot(TapinomaIRVisPlot)
 
 tapinomaRSquared <- readRDS("Tapinoma_visibleAndIRModel.RDS")
 summary(tapinomaRSquared)
+
+samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
+samplingTapinoma
+
+
+
+
+#. FORELIUS 
+
 
