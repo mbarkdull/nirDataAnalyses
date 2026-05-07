@@ -522,6 +522,91 @@ samplingTapinoma
 
 
 
-#. FORELIUS 
+# FORELIUS 
+
+analyzingNIRData(inputGenus = "Forelius")
+
+ForeliusIRVisPlot <- readRDS(file = "Forelius_irVisPlot.RDS")
+plot(ForeliusIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Forelius pruinosus*") + 
+  theme(plot.title = element_markdown())
+
+ForeliusRSquared <- readRDS("Forelius_visibleAndIRModel.RDS")
+summary(ForeliusRSquared)
+
+#IR MODELS 
+
+ForeliusM1Model <- readRDS("Forelius_m1Model.RDS")
+summary(ForeliusM1Model)
+ForeliusM2Model <- readRDS("Forelius_m2Model.RDS")
+summary(ForeliusM2Model)
+ForeliusM3Model <- readRDS("Forelius_m3Model.RDS")
+summary(ForeliusM3Model)
+ForeliusM4Model <- readRDS("Forelius_m4Model.RDS")
+summary(ForeliusM4Model)
+ForeliusM5Model <- readRDS("Forelius_m5Model.RDS")
+summary(ForeliusM5Model)
+ForeliusFullModel <- readRDS("Forelius_fullModel.RDS")
+summary(ForeliusFullModel)
+
+ForeliusModelList <- list(
+  "Cold" = ForeliusM1Model,
+  "Solar Radiation" = ForeliusM2Model,
+  "Solar x Cold" = ForeliusM3Model,
+  "Warm" = ForeliusM4Model,
+  "Precipitation" = ForeliusM5Model,
+  "Full Model" = ForeliusFullModel)
+
+aictab(cand.set = ForeliusModelList)
+
+#VIS MODELS 
+
+vistapM1Model <- readRDS("Tapinoma_VISm1Model.RDS")
+summary(vistapM1Model)
+vistapM2Model <- readRDS("Tapinoma_VISm2Model.RDS")
+summary(vistapM2Model)
+vistapM3Model <- readRDS("Tapinoma_VISm3Model.RDS")
+summary(vistapM3Model)
+vistapM4Model <- readRDS("Tapinoma_VISm4Model.RDS")
+summary(vistapM4Model)
+vistapM5Model <- readRDS("Tapinoma_VISm5Model.RDS")
+summary(vistapM5Model)
+vistapFullModel <- readRDS("Tapinoma_VISfullModel.RDS")
+summary(vistapFullModel)
+
+vistapinomaModelList <- list(
+  "Cold" = vistapM1Model,
+  "Solar Radiation" = vistapM2Model,
+  "Solar x Cold" = vistapM3Model,
+  "Warm" = vistapM4Model,
+  "Precipitation" = vistapM5Model,
+  "Full Model" = vistapFullModel)
+
+
+aictab(cand.set = vistapinomaModelList)
+
+
+samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
+samplingTapinoma + ggtitle("*Tapinoma sessile* Sampling Locations") + 
+  theme(plot.title = element_markdown())
+
+Tapinomacorrelation <- readRDS("Tapinoma_correlationVisIR.RDS")
+Tapinomacorrelation
+
+TapinomaIRVisPlot <- readRDS(file = "Tapinoma_irVisPlot.RDS")
+plot(TapinomaIRVisPlot)
+
+tapinomaRSquared <- readRDS("Tapinoma_visibleAndIRModel.RDS")
+summary(tapinomaRSquared)
+
+samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
+samplingTapinoma
+
+
+
+
+
+
+
+
 
 
