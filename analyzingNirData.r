@@ -9,8 +9,9 @@ library(terra)
 library(geodata)
 library(ggplot2)
 library(AICcmodavg)
-install.packages("ggtext")
 library(ggtext)
+library(patchwork)
+library(cowplot)
 
 
 #Create a function is next to do for code
@@ -32,8 +33,8 @@ analyzingNIRData <- function(inputGenus) {
   
  #Downloading Climate Data
   
-  dir.create("./data/worldclim",
-             recursive = TRUE)
+  # dir.create("./data/worldclim",
+  #           recursive = TRUE)
   
   nirClimateData <- worldclim_global(var = "bio",
                                      res = 10,
@@ -384,8 +385,8 @@ summary(prenolepisFullModel)
 
 
 prenolepisIRVisPlot <- readRDS(file = "Prenolepis_irVisPlot.RDS")
-plot(prenolepisIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Prenolepis imparis*") + 
-  theme(plot.title = element_markdown())
+prenolepisIRVisPlot <- plot(prenolepisIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Prenolepis imparis*") + 
+  theme(plot.title = element_markdown()) 
 
 samplingPrenolepis <- readRDS(file = "Prenolepis_samplingLocations.RDS")
 samplingPrenolepis + ggtitle("*Prenolepis imparis* Sampling Locations") + 
@@ -445,7 +446,7 @@ aictab(cand.set = prenolepisModelList)
 analyzingNIRData(inputGenus = "Tapinoma")
 
 tapinomaIRVisPlot <- readRDS(file = "Tapinoma_irVisPlot.RDS")
-plot(tapinomaIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Tapinoma sessile*") + 
+tapinomaIRVisPlot <- plot(tapinomaIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Tapinoma sessile*") + 
   theme(plot.title = element_markdown())
 
 tapinomaRSquared <- readRDS("Tapinoma_visibleAndIRModel.RDS")
@@ -500,7 +501,11 @@ vistapinomaModelList <- list(
   "Full Model" = vistapFullModel)
 
 
-aictab(cand.set = vistapinomaModelList)
+aic = as.data.frame(aictab(cand.set = vistapinomaModelList))
+aic %>% arrange(rownames(aic)) %>% 
+  select(Modnames, K,  AICc, AICcWt) %>%
+  mutate(across(c(AICc, AICcWt), function(x) round(x, 2))) %>%
+  write.csv("aicOutputForTapinoma.csv")
 
 
 samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
@@ -527,7 +532,7 @@ samplingTapinoma
 analyzingNIRData(inputGenus = "Forelius")
 
 ForeliusIRVisPlot <- readRDS(file = "Forelius_irVisPlot.RDS")
-plot(ForeliusIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Forelius pruinosus*") + 
+ForeliusIRVisPlot <-plot(ForeliusIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Forelius pruinosus*") + 
   theme(plot.title = element_markdown())
 
 ForeliusRSquared <- readRDS("Forelius_visibleAndIRModel.RDS")
@@ -604,8 +609,9 @@ samplingTapinoma
 
 
 
-
-
+newplot <- prenolepisIRVisPlot + tapinomaIRVisPlot + ForeliusIRVisPlot + plot_annotation(tag_levels = 
+                                                                                           'A')
+save_plot("newplotIRVIS.png", newplot, base_height = 4, base_width = 13)
 
 
 
