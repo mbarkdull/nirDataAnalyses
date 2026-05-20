@@ -12,6 +12,7 @@ library(AICcmodavg)
 library(ggtext)
 library(patchwork)
 library(cowplot)
+library(maps)
 
 
 #Create a function is next to do for code
@@ -252,7 +253,7 @@ analyzingNIRData <- function(inputGenus) {
           file = paste(inputGenus,
                        "_m3Model.RDS",
                        sep = ""))
-  M4 <- lm(visAndIRResiduals ~ mTWQ +
+  M4 <- lm(visAndIRResiduals ~ mTWQ*tempSeasonality +
              annualMeanTemp, data = spatialNirData)
   summary(M4)
   saveRDS(object = M4,
@@ -353,9 +354,7 @@ analyzingNIRData <- function(inputGenus) {
     theme(
       plot.margin = margin(t = 20, r = 40, b = 20, l = 20),
       plot.title = element_text(hjust = 0.5)
-    ) +
-    labs(title = "Sampling Locations",
-         x = NULL, y = NULL) 
+    ) 
  
   saveRDS(object = samplingLocations, 
           file = paste(inputGenus,
@@ -386,10 +385,15 @@ summary(prenolepisFullModel)
 
 prenolepisIRVisPlot <- readRDS(file = "Prenolepis_irVisPlot.RDS")
 prenolepisIRVisPlot <- plot(prenolepisIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Prenolepis imparis*") + 
-  theme(plot.title = element_markdown()) 
+  theme(plot.title = element_markdown())
+
+#correlation summary for VIS and IR
+
+prenolepisRSquared <- readRDS("Prenolepis_visibleAndIRModel.RDS")
+summary(prenolepisRSquared)
 
 samplingPrenolepis <- readRDS(file = "Prenolepis_samplingLocations.RDS")
-samplingPrenolepis + ggtitle("*Prenolepis imparis* Sampling Locations") + 
+samplingPrenolepis + 
   theme(plot.title = element_markdown())
 
 
@@ -397,10 +401,6 @@ prenolepiscorrelation <- readRDS("Prenolepis_correlationVisIR.RDS")
 prenolepiscorrelation
 
 
-#correlation summary for VIS and IR
-
-prenolepisRSquared <- readRDS("Prenolepis_visibleAndIRModel.RDS")
-summary(prenolepisRSquared)
 
 #for PRenolepis VIS 
 
@@ -437,7 +437,14 @@ prenolepisModelList <- list(
   "Precipitation" = prenolepisM5Model,
   "Full Model" = prenolepisFullModel)
 
+
 aictab(cand.set = prenolepisModelList)
+
+aic = as.data.frame(aictab(cand.set = prenolepisModelList))
+aic %>% arrange(rownames(aic)) %>% 
+  select(Modnames, K,  AICc, AICcWt) %>%
+  mutate(across(c(AICc, AICcWt), function(x) round(x, 2))) %>%
+  write.csv("aicOutputForPrenolepisInfrared.csv")
 
 
 
@@ -446,7 +453,7 @@ aictab(cand.set = prenolepisModelList)
 analyzingNIRData(inputGenus = "Tapinoma")
 
 tapinomaIRVisPlot <- readRDS(file = "Tapinoma_irVisPlot.RDS")
-tapinomaIRVisPlot <- plot(tapinomaIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Tapinoma sessile*") + 
+tapinomaIRVisPlot <- plot(tapinomaIRVisPlot) + ggtitle("IR vs. 'Visible Refelctivity: *Tapinoma sessile*") + 
   theme(plot.title = element_markdown())
 
 tapinomaRSquared <- readRDS("Tapinoma_visibleAndIRModel.RDS")
@@ -509,8 +516,7 @@ aic %>% arrange(rownames(aic)) %>%
 
 
 samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
-samplingTapinoma + ggtitle("*Tapinoma sessile* Sampling Locations") + 
-  theme(plot.title = element_markdown())
+samplingTapinoma + theme(plot.title = element_markdown())
 
 Tapinomacorrelation <- readRDS("Tapinoma_correlationVisIR.RDS")
 Tapinomacorrelation
@@ -530,6 +536,7 @@ samplingTapinoma
 # FORELIUS 
 
 analyzingNIRData(inputGenus = "Forelius")
+
 
 ForeliusIRVisPlot <- readRDS(file = "Forelius_irVisPlot.RDS")
 ForeliusIRVisPlot <-plot(ForeliusIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Forelius pruinosus*") + 
@@ -608,11 +615,47 @@ samplingTapinoma
 
 
 
+# plots and tables for paper 
 
-newplot <- prenolepisIRVisPlot + tapinomaIRVisPlot + ForeliusIRVisPlot + plot_annotation(tag_levels = 
-                                                                                           'A')
+# Vis and IR correlation plot 
+
+newplot <- prenolepisIRVisPlot + ggtitle("IR vs. Visible Refelctivity: *Prenolepis imparis*") + 
+  theme(plot.title = element_markdown()) + tapinomaIRVisPlot + ggtitle("IR vs. Visible Refelctivity: *Tapinoma sessile*") + 
+  theme(plot.title = element_markdown()) + ForeliusIRVisPlot + ggtitle("IR vs. Visible Refelctivity: *Forelius pruinosus*") + 
+  theme(plot.title = element_markdown()) + plot_annotation(tag_levels = 
+                                                               'A') 
 save_plot("newplotIRVIS.png", newplot, base_height = 4, base_width = 13)
 
+#Table for Models ( in methods, table 1)
 
+myModels <- data.frame(
+  Model = c("Cold", "Solar Radiation", "Solar Radiation x Cold", "Warm", "Percipitation" , "Full Model"),  
+  Variables = c("Mean temperature of the coldest quarter, temperature seasonality, annual mean temperature, and mTCQ:tempseasonality",
+                "Temperature seasonality, solar mean, annual mean temperature, and tempsesonality:solarmean", 
+                "Mean temperature of the coldest quarter,solar mean, annual mean temperature, mTCQ:solarmean",
+                "Mean temperature of the warmest quarter, annualMeanTemp, and mTWQ:tempseasonality",
+                "Percipitation of the Coldest Quarter, temperature seasonality, annual mean temperature, 
+                          and percipColdestQ:tempseasonality", "All variables"))
+print(myModels) %>%
+  write.csv("models.csv")
+
+
+# Image for map 
+
+
+# Clear the individual titles so they are uniform
+map1 <- samplingPrenolepis + ggtitle(NULL)
+map2 <- samplingTapinoma   + ggtitle(NULL)
+
+yuh <- map1 + map2 + plot_layout(guides = 'collect') + plot_annotation(tag_levels = 
+                                                                  'A') &  
+  scale_size_continuous(name = NULL, limits = c(1, 100))
+save_plot("yuh.png", yuh, base_height = 4, base_width = 13)
+
+
+
+samplingFor <- readRDS(file = "Forelius_samplingLocations.RDS")
+foreliusSampling + 
+  theme(plot.title = element_markdown())
 
 
