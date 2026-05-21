@@ -13,6 +13,7 @@ library(ggtext)
 library(patchwork)
 library(cowplot)
 library(maps)
+library(broom)
 
 
 #Create a function is next to do for code
@@ -371,6 +372,12 @@ analyzingNIRData(inputGenus = "Prenolepis")
 
 prenolepisM1Model <- readRDS("Prenolepis_m1Model.RDS")
 summary(prenolepisM1Model)
+
+model1 = summary(prenolepisM1Model) 
+summaryM1 <- tidy(model1)
+write.csv(summaryM1, "model_summary.csv", row.names = FALSE) # how to round these? 
+
+
 prenolepisM2Model <- readRDS("Prenolepis_m2Model.RDS")
 summary(prenolepisM2Model)
 prenolepisM3Model <- readRDS("Prenolepis_m3Model.RDS")
@@ -402,7 +409,7 @@ prenolepiscorrelation
 
 
 
-#for PRenolepis VIS 
+#for Prenolepis VIS 
 
 visprenolepisM1Model <- readRDS("Prenolepis_VISm1Model.RDS")
 summary(visprenolepisM1Model)
@@ -427,7 +434,15 @@ VISprenolepisModelList <- list(
 
 aictab(cand.set = VISprenolepisModelList)
 
+aic = as.data.frame(aictab(cand.set = VISprenolepisModelList)) 
+aic %>% arrange(rownames(aic)) %>% 
+  select(Modnames, K,  AICc, AICcWt) %>%
+  mutate(across(c(AICc, AICcWt), function(x) round(x, 2))) %>%
+  write.csv("aicOutputForPrenolepisVIS.csv")
+
 #for IR
+
+
 
 prenolepisModelList <- list(
   "Cold" = prenolepisM1Model,
@@ -440,11 +455,11 @@ prenolepisModelList <- list(
 
 aictab(cand.set = prenolepisModelList)
 
-aic = as.data.frame(aictab(cand.set = prenolepisModelList))
+aic = as.data.frame(aictab(cand.set = prenolepisModelList)) 
 aic %>% arrange(rownames(aic)) %>% 
   select(Modnames, K,  AICc, AICcWt) %>%
   mutate(across(c(AICc, AICcWt), function(x) round(x, 2))) %>%
-  write.csv("aicOutputForPrenolepisInfrared.csv")
+  write.csv("aicOutputForPrenolepisInfraredUSE.csv")
 
 
 
@@ -484,6 +499,14 @@ tapinomaModelList <- list(
 
 aictab(cand.set = tapinomaModelList)
 
+aic = as.data.frame(aictab(cand.set = tapinomaModelList)) 
+aic %>% arrange(rownames(aic)) %>% 
+  select(Modnames, K,  AICc, AICcWt) %>%
+  mutate(across(c(AICc, AICcWt), function(x) round(x, 2))) %>%
+  write.csv("aicOutputForTAPINOMA_IR.csv")
+
+
+
 #VIS MODELS 
 
 vistapM1Model <- readRDS("Tapinoma_VISm1Model.RDS")
@@ -508,11 +531,12 @@ vistapinomaModelList <- list(
   "Full Model" = vistapFullModel)
 
 
-aic = as.data.frame(aictab(cand.set = vistapinomaModelList))
-aic %>% arrange(rownames(aic)) %>% 
-  select(Modnames, K,  AICc, AICcWt) %>%
-  mutate(across(c(AICc, AICcWt), function(x) round(x, 2))) %>%
-  write.csv("aicOutputForTapinoma.csv")
+aic = as.data.frame(aictab(cand.set = vistapinomaModelList)) #creates the aic model list as a data frame and puts it as a vector..
+#do not know what cand.set does???
+aic %>% arrange(rownames(aic)) %>% #arranges the row names by vistapinomaModelList
+  select(Modnames, K,  AICc, AICcWt) %>% #selects which columns to include 
+  mutate(across(c(AICc, AICcWt), function(x) round(x, 2))) %>% #rounds the numbers 
+  write.csv("aicOutputForTapinoma_VIS.csv")
 
 
 samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
@@ -526,9 +550,6 @@ plot(TapinomaIRVisPlot)
 
 tapinomaRSquared <- readRDS("Tapinoma_visibleAndIRModel.RDS")
 summary(tapinomaRSquared)
-
-samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
-samplingTapinoma
 
 
 
@@ -570,22 +591,29 @@ ForeliusModelList <- list(
 
 aictab(cand.set = ForeliusModelList)
 
+aic = as.data.frame(aictab(cand.set = ForeliusModelList)) 
+aic %>% arrange(rownames(aic)) %>% 
+  select(Modnames, K,  AICc, AICcWt) %>%
+  mutate(across(c(AICc, AICcWt), function(x) round(x, 2))) %>%
+  write.csv("aicOutputForForelius_IR.csv")
+
+
 #VIS MODELS 
 
-vistapM1Model <- readRDS("Tapinoma_VISm1Model.RDS")
-summary(vistapM1Model)
-vistapM2Model <- readRDS("Tapinoma_VISm2Model.RDS")
-summary(vistapM2Model)
-vistapM3Model <- readRDS("Tapinoma_VISm3Model.RDS")
-summary(vistapM3Model)
-vistapM4Model <- readRDS("Tapinoma_VISm4Model.RDS")
-summary(vistapM4Model)
-vistapM5Model <- readRDS("Tapinoma_VISm5Model.RDS")
-summary(vistapM5Model)
-vistapFullModel <- readRDS("Tapinoma_VISfullModel.RDS")
-summary(vistapFullModel)
+visForeliusM1Model <- readRDS("Forelius_VISm1Model.RDS")
+summary(visForeliusM1Model)
+visForeliusM2Model <- readRDS("Forelius_VISm2Model.RDS")
+summary(visForeliusM2Model)
+visForeliusM3Model <- readRDS("Forelius_VISm3Model.RDS")
+summary(visForeliusM3Model)
+visForeliusM4Model <- readRDS("Forelius_VISm4Model.RDS")
+summary(visForeliusM4Model)
+visForeliusM5Model <- readRDS("Forelius_VISm5Model.RDS")
+summary(visForeliusM5Model)
+visForeliusFullModel <- readRDS("Forelius_VISfullModel.RDS")
+summary(visForeliusFullModel)
 
-vistapinomaModelList <- list(
+visforeliusModelList <- list(
   "Cold" = vistapM1Model,
   "Solar Radiation" = vistapM2Model,
   "Solar x Cold" = vistapM3Model,
@@ -594,9 +622,16 @@ vistapinomaModelList <- list(
   "Full Model" = vistapFullModel)
 
 
-aictab(cand.set = vistapinomaModelList)
+aictab(cand.set = visforeliusModelList)
 
 
+aic = as.data.frame(aictab(cand.set = visforeliusModelList)) 
+aic %>% arrange(rownames(aic)) %>% 
+  select(Modnames, K,  AICc, AICcWt) %>%
+  mutate(across(c(AICc, AICcWt), function(x) round(x, 2))) %>%
+  write.csv("aicOutputForForelius_VIS.csv")
+
+ ####################
 samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
 samplingTapinoma + ggtitle("*Tapinoma sessile* Sampling Locations") + 
   theme(plot.title = element_markdown())
@@ -612,7 +647,7 @@ summary(tapinomaRSquared)
 
 samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
 samplingTapinoma
-
+########################
 
 
 # plots and tables for paper 
