@@ -14,6 +14,7 @@ library(patchwork)
 library(cowplot)
 library(maps)
 library(broom)
+library(rnaturalearth)
 
 
 #Create a function is next to do for code
@@ -328,14 +329,12 @@ analyzingNIRData <- function(inputGenus) {
                        sep = ""))
   
   
-  
-  
   #plotting vis with residuals (line isn't positive anymore)
   ggplot(data = spatialNirData, 
          mapping = aes(x = `Average Visible`, 
                        y = visAndIRRresiduals)) + 
     geom_point() + 
-    geom_smooth()
+    geom_smooth() 
   
   #plot for sampling locations
  samplingLocations <- ggplot() +
@@ -361,13 +360,12 @@ analyzingNIRData <- function(inputGenus) {
           file = paste(inputGenus,
                        "_samplingLocations.RDS",
                        sep = ""))
-  
 }
 
 
 #Prenolepis
 
-analyzingNIRData(inputGenus = "Prenolepis")
+prenolepis <-analyzingNIRData(inputGenus = "Prenolepis")
 
 
 prenolepisM1Model <- readRDS("Prenolepis_m1Model.RDS")
@@ -465,7 +463,7 @@ aic %>% arrange(rownames(aic)) %>%
 
 #TAPINOMA
 
-analyzingNIRData(inputGenus = "Tapinoma")
+tapinoma <- analyzingNIRData(inputGenus = "Tapinoma")
 
 tapinomaIRVisPlot <- readRDS(file = "Tapinoma_irVisPlot.RDS")
 tapinomaIRVisPlot <- plot(tapinomaIRVisPlot) + ggtitle("IR vs. 'Visible Refelctivity: *Tapinoma sessile*") + 
@@ -556,7 +554,7 @@ summary(tapinomaRSquared)
 
 # FORELIUS 
 
-analyzingNIRData(inputGenus = "Forelius")
+forelius <- analyzingNIRData(inputGenus = "Forelius")
 
 
 ForeliusIRVisPlot <- readRDS(file = "Forelius_irVisPlot.RDS")
@@ -675,22 +673,37 @@ print(myModels) %>%
   write.csv("models.csv")
 
 
-# Image for map 
+
+# NEW PLOT 
 
 
-# Clear the individual titles so they are uniform
-map1 <- samplingPrenolepis + ggtitle(NULL)
-map2 <- samplingTapinoma   + ggtitle(NULL)
+library(rnaturalearth)
+library(sf)
+library(tidyverse)
 
-yuh <- map1 + map2 + plot_layout(guides = 'collect') + plot_annotation(tag_levels = 
-                                                                  'A') &  
-  scale_size_continuous(name = NULL, limits = c(1, 100))
-save_plot("yuh.png", yuh, base_height = 4, base_width = 13)
+new <- read.csv("kamalSpecimenDatabasing - Data Entry.csv")
+world2 <- ne_countries(scale = "medium", returnclass = "sf")
+dd = new %>% 
+  group_by(Latitude, Longitude) %>% 
+  mutate(n = n())
+hist(dd$Latitude)
+hist(dd$Longitude)
+
+ggplot() +
+  geom_sf(data = world2, fill = "white", color = "gray70", size = 0.15) +
+  geom_point(data = dd,
+             aes(x = Longitude, y = Latitude, size = n, color = n),
+             alpha = 0.6) +
+  scale_size_continuous(name = "# Specimens") +
+  scale_color_viridis_c() +
+  guides(color = "none") +
+  xlim(-150, -50) + ylim(17, 50) +
+  theme_void() +
+  theme(plot.margin = margin(t = 20, r = 40, b = 20, l = 20),
+        plot.title = element_text(hjust = 0.5))
+
+dd %>% filter(Longitude > -50 | Longitude < -150) %>% View()
 
 
-
-samplingFor <- readRDS(file = "Forelius_samplingLocations.RDS")
-foreliusSampling + 
-  theme(plot.title = element_markdown())
 
 
