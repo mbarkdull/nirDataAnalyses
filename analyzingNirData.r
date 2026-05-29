@@ -229,8 +229,34 @@ analyzingNIRData <- function(inputGenus) {
   
   #Residuals 
   
+  
   visAndIRResiduals<- residuals(visibleAndIRModel)
   spatialNirData$visAndIRRresiduals <- visAndIRResiduals
+  
+  
+  residualsplot <- ggplot(data = spatialNirData, 
+                      mapping = aes(x = `Average Visible`,
+                                    y = visAndIRResiduals)) + 
+    geom_point(alpha = 0.6) + 
+    geom_smooth(method = "lm", color = "black", fill = "lightgreen") +
+    annotate("text", x = Inf, y = Inf, 
+             label = paste("r =", round(correlation, 4)),
+             hjust = 1.1, vjust = 1.5, size = 4) +
+    labs(title = "IR vs. Visible Reflectivity Residuals",
+         x = "% Visible Reflectivity",
+         y = "% IR Reflectivity") +
+    theme_classic()
+  
+  saveRDS(object = residualsplot,
+          file = paste(inputGenus,
+                       "_residualsplot.RDS",
+                       sep = ""))
+  
+  
+  
+  
+  
+  
   
   #linear models
   
@@ -365,7 +391,7 @@ analyzingNIRData <- function(inputGenus) {
 
 #Prenolepis
 
-prenolepis <-analyzingNIRData(inputGenus = "Prenolepis")
+analyzingNIRData(inputGenus = "Prenolepis")
 
 
 prenolepisM1Model <- readRDS("Prenolepis_m1Model.RDS")
@@ -391,6 +417,12 @@ summary(prenolepisFullModel)
 prenolepisIRVisPlot <- readRDS(file = "Prenolepis_irVisPlot.RDS")
 prenolepisIRVisPlot <- plot(prenolepisIRVisPlot) + ggtitle("IR vs. Visible Refelctivity: *Prenolepis imparis*") + 
   theme(plot.title = element_markdown())
+
+
+prenolepisResidualsPlot <- readRDS(file = "Prenolepis_residualsplot.RDS")
+prenolepisResidualsPlot <- plot(prenolepisResidualsPlot) + ggtitle("IR vs. Visible Refelctivity Res: *Prenolepis imparis*") + 
+  theme(plot.title = element_markdown())
+
 
 #correlation summary for VIS and IR
 
