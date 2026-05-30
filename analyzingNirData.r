@@ -234,30 +234,6 @@ analyzingNIRData <- function(inputGenus) {
   spatialNirData$visAndIRRresiduals <- visAndIRResiduals
   
   
-  residualsplot <- ggplot(data = spatialNirData, 
-                      mapping = aes(x = `Average Visible`,
-                                    y = visAndIRResiduals)) + 
-    geom_point(alpha = 0.6) + 
-    geom_smooth(method = "lm", color = "black", fill = "lightgreen") +
-    annotate("text", x = Inf, y = Inf, 
-             label = paste("r =", round(correlation, 4)),
-             hjust = 1.1, vjust = 1.5, size = 4) +
-    labs(title = "IR vs. Visible Reflectivity Residuals",
-         x = "% Visible Reflectivity",
-         y = "% IR Reflectivity") +
-    theme_classic()
-  
-  saveRDS(object = residualsplot,
-          file = paste(inputGenus,
-                       "_residualsplot.RDS",
-                       sep = ""))
-  
-  
-  
-  
-  
-  
-  
   #linear models
   
   M1 <- lm(visAndIRResiduals ~ mTCQ*tempSeasonality +
@@ -419,10 +395,6 @@ prenolepisIRVisPlot <- plot(prenolepisIRVisPlot) + ggtitle("IR vs. Visible Refel
   theme(plot.title = element_markdown())
 
 
-prenolepisResidualsPlot <- readRDS(file = "Prenolepis_residualsplot.RDS")
-prenolepisResidualsPlot <- plot(prenolepisResidualsPlot) + ggtitle("IR vs. Visible Refelctivity Res: *Prenolepis imparis*") + 
-  theme(plot.title = element_markdown())
-
 
 #correlation summary for VIS and IR
 
@@ -471,8 +443,6 @@ aic %>% arrange(rownames(aic)) %>%
   write.csv("aicOutputForPrenolepisVIS.csv")
 
 #for IR
-
-
 
 prenolepisModelList <- list(
   "Cold" = prenolepisM1Model,
@@ -721,7 +691,7 @@ dd = new %>%
 hist(dd$Latitude)
 hist(dd$Longitude)
 
-ggplot() +
+yay <- ggplot() +
   geom_sf(data = world2, fill = "white", color = "gray70", size = 0.15) +
   geom_point(data = dd,
              aes(x = Longitude, y = Latitude, size = n, color = n),
@@ -736,6 +706,14 @@ ggplot() +
 
 dd %>% filter(Longitude > -50 | Longitude < -150) %>% View()
 
+save_plot("mapPlotIRVIS.png", yay, base_height = 3, base_width = 9)
 
+
+# COUNT 
+
+KamalSpecimenData <- read.csv("specimendata222.csv")
+sum(KamalSpecimenData$Species == "imparis")
+sum(KamalSpecimenData$Species == "pruinosus")
+sum(KamalSpecimenData$Species == "sessile")
 
 
