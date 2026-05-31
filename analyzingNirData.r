@@ -450,7 +450,7 @@ prenolepisModelList <- list(
   "Solar x Cold" = prenolepisM3Model,
   "Warm" = prenolepisM4Model,
   "Precipitation" = prenolepisM5Model,
-  "Full Model" = prenolepisFullModel)
+  "Full Model" = prenolepisFullModel )
 
 
 aictab(cand.set = prenolepisModelList)
@@ -529,6 +529,8 @@ vistapinomaModelList <- list(
   "Warm" = vistapM4Model,
   "Precipitation" = vistapM5Model,
   "Full Model" = vistapFullModel)
+
+aictab(cand.set = vistapinomaModelList)
 
 
 aic = as.data.frame(aictab(cand.set = vistapinomaModelList)) #creates the aic model list as a data frame and puts it as a vector..
@@ -614,12 +616,12 @@ visForeliusFullModel <- readRDS("Forelius_VISfullModel.RDS")
 summary(visForeliusFullModel)
 
 visforeliusModelList <- list(
-  "Cold" = vistapM1Model,
-  "Solar Radiation" = vistapM2Model,
-  "Solar x Cold" = vistapM3Model,
-  "Warm" = vistapM4Model,
-  "Precipitation" = vistapM5Model,
-  "Full Model" = vistapFullModel)
+  "Cold" = visForeliusM1Model,
+  "Solar Radiation" = visForeliusM2Model,
+  "Solar x Cold" = visForeliusM3Model,
+  "Warm" = visForeliusM4Model,
+  "Precipitation" = visForeliusM5Model,
+  "Full Model" = visForeliusFullModel )
 
 
 aictab(cand.set = visforeliusModelList)
@@ -629,7 +631,7 @@ aic = as.data.frame(aictab(cand.set = visforeliusModelList))
 aic %>% arrange(rownames(aic)) %>% 
   select(Modnames, K,  AICc, AICcWt) %>%
   mutate(across(c(AICc, AICcWt), function(x) round(x, 2))) %>%
-  write.csv("aicOutputForForelius_VIS.csv")
+  write.csv("NEWaicOutputForForelius_VIS.csv")
 
  ####################
 samplingTapinoma <- readRDS(file = "Tapinoma_samplingLocations.RDS")
