@@ -3,7 +3,7 @@ library(tidyverse)
 library(scales)
 library(lubridate)
 library(janitor)
-library(sf) 
+library(sf)
 library(spData)
 library(terra)
 library(geodata)
@@ -656,9 +656,9 @@ samplingTapinoma
 
 # Vis and IR correlation plot 
 
-newplot <- prenolepisIRVisPlot + ggtitle("IR vs. Visible Refelctivity: *Prenolepis imparis*") + 
-  theme(plot.title = element_markdown()) + tapinomaIRVisPlot + ggtitle("IR vs. Visible Refelctivity: *Tapinoma sessile*") + 
-  theme(plot.title = element_markdown()) + ForeliusIRVisPlot + ggtitle("IR vs. Visible Refelctivity: *Forelius pruinosus*") + 
+newplot <- prenolepisIRVisPlot + ggtitle("IR vs. Visible Reflectivity: *Prenolepis imparis*") + 
+  theme(plot.title = element_markdown()) + tapinomaIRVisPlot + ggtitle("IR vs. Visible Reflectivity: *Tapinoma sessile*") + 
+  theme(plot.title = element_markdown()) + ForeliusIRVisPlot + ggtitle("IR vs. Visible Reflectivity: *Forelius pruinosus*") + 
   theme(plot.title = element_markdown()) + plot_annotation(tag_levels = 
                                                                'A') 
 save_plot("newplotIRVIS.png", newplot, base_height = 4, base_width = 13)
